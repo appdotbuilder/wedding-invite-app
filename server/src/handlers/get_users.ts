@@ -1,20 +1,45 @@
+import { db } from '../db';
+import { usersTable } from '../db/schema';
+import { eq } from 'drizzle-orm';
 import { type User } from '../schema';
 
 export async function getUsers(): Promise<User[]> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching all users from the database.
-    // Implementation should:
-    // 1. Query users table with appropriate filters based on requesting user's role
-    // 2. Decrypt sensitive fields (name, email, phone) for display
-    // 3. Return list of users
-    
-    return Promise.resolve([]); // Placeholder
+  try {
+    const results = await db.select()
+      .from(usersTable)
+      .execute();
+
+    // Return users with proper type mapping
+    return results.map(user => ({
+      ...user,
+      created_at: new Date(user.created_at),
+      updated_at: new Date(user.updated_at),
+      last_login: user.last_login ? new Date(user.last_login) : null,
+      approved_at: user.approved_at ? new Date(user.approved_at) : null
+    }));
+  } catch (error) {
+    console.error('Failed to fetch users:', error);
+    throw error;
+  }
 }
 
 export async function getUsersPendingApproval(): Promise<User[]> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching users pending approval (status = 'pending').
-    // Used by super_admin to approve user_mitra accounts.
-    
-    return Promise.resolve([]); // Placeholder
+  try {
+    const results = await db.select()
+      .from(usersTable)
+      .where(eq(usersTable.status, 'pending'))
+      .execute();
+
+    // Return users with proper type mapping
+    return results.map(user => ({
+      ...user,
+      created_at: new Date(user.created_at),
+      updated_at: new Date(user.updated_at),
+      last_login: user.last_login ? new Date(user.last_login) : null,
+      approved_at: user.approved_at ? new Date(user.approved_at) : null
+    }));
+  } catch (error) {
+    console.error('Failed to fetch users pending approval:', error);
+    throw error;
+  }
 }
